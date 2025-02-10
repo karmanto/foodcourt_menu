@@ -28,13 +28,13 @@ export default async function RootLayout({
           className={`${inter.className} bg-primary text-black min-h-screen font-medium`}
         >
           {/* HEADER */}
-          <header className='flex justify-between items-center p-4'>
+          <header className='flex justify-between items-center px-4 py-2'>
             <ClientHeader />
             <Nav session={session} />
           </header>
 
           {/* CONTENT */}
-          <main className='flex h-[75vh] flex-col items-center px-4 overflow-auto'>
+          <main className='flex h-[80vh] flex-col items-center px-4 overflow-auto'>
             <Providers>{children}</Providers>
           </main>
           {/* FOOTER */}

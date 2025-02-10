@@ -11,6 +11,10 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { AppRoutes } from '@/lib/utils/constants/AppRoutes'
 import Link from 'next/link'
+import { IoCreateOutline as Add } from 'react-icons/io5'
+import { 
+  RiFilter3Line as Filter, 
+} from 'react-icons/ri'
 
 export default function DiscountPage() {
   const dispatch = useDispatch()
@@ -96,10 +100,10 @@ export default function DiscountPage() {
     <div className="flex flex-col items-center w-full">
       <div className="w-full md:w-2/3 flex items-center my-4">
         <button className="btn-primary mr-2 ml-auto" onClick={() => setFilterModalOpen(true)}>
-          Filter
+          <Filter className='inline' fontSize={20} />
         </button>
         <Link href={AppRoutes.CreateDiscount} className="btn-primary">
-          Create
+          <Add className='inline' fontSize={20} />
         </Link>
       </div>
 
