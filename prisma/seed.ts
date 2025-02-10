@@ -8,13 +8,12 @@ async function main() {
     where: { email: 'test@test.com' },
     update: {},
     create: {
-      email: 'test@test.com',
-      name: 'Test User',
-      password
+      email: 'admin@gmail.com',
+      name: 'admin',
+      password: 'BismillahLaris2025'
     }
   })
 
-  // console.log(user)
 }
 
 main()
@@ -22,5 +21,5 @@ main()
   .catch(async (e) => {
     console.error(e)
     await prisma.$disconnect()
-    process.exit(1) //1 means true
+    process.exit(1)
   })

@@ -12,6 +12,8 @@ import {
   RiUserSharedLine, 
   RiHome2Line as Home,
   RiPercentLine as Discount,
+  RiListCheck2 as Category,
+  RiCupLine as Menu,
 } from 'react-icons/ri'
 import { useState } from 'react'
 import { IconType } from 'react-icons/lib'
@@ -35,6 +37,8 @@ const mainNavButtons: NavButton[] = [
 
 const dropdownNavButtons: NavButton[] = [
   { title: 'Home', icon: Home, authenticated: true, route: AppRoutes.Home },
+  { title: 'Menu', icon: Menu, authenticated: true, route: AppRoutes.Menu },
+  { title: 'Category', icon: Category, authenticated: true, route: AppRoutes.Category },
   { title: 'Discount', icon: Discount, authenticated: true, route: AppRoutes.Discount },
 ]
 
