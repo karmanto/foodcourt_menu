@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["jsonProtocol"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+  shadowDatabaseUrl = env("POSTGRES_URL_NON_POOLING") // used for migrations
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  active    Boolean   @default(true) 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Menu {
+  id         Int       @id @default(autoincrement())
+  name       String
+  desc       String
+  price      Float
+  pic_url    String
+
+  category   Category  @relation(fields: [categoryId], references: [id])
+  categoryId Int
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model Category {
+  id        Int     @id @default(autoincrement())
+  name      String
+
+  menus     Menu[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Discount {
+  id         Int       @id @default(autoincrement())
+  name       String
+  value      Float
+  startPeriod DateTime
+  endPeriod   DateTime
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
