@@ -17,13 +17,20 @@ export default function NewMenuPage() {
   const queryClient = useQueryClient()
   const { data: session, status } = useSession()
 
+  // State form
   const [name, setName] = useState('')
   const [desc, setDesc] = useState('')
   const [price, setPrice] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [picFile, setPicFile] = useState<File | null>(null)
   const [isCreating, setIsCreating] = useState(false)
+  // State notification (null jika tidak ada notifikasi)
+  const [notification, setNotification] = useState<{
+    message: string
+    type: 'success' | 'error'
+  } | null>(null)
 
+  // Ambil data kategori (fetch ulang setiap render)
   const {
     data: categories,
     isLoading: isCategoriesLoading,
@@ -42,8 +49,16 @@ export default function NewMenuPage() {
   const { mutateAsync: createMenu } = useMutation({
     mutationFn: createMenuFn,
     onSuccess: () => {
-      router.push(AppRoutes.Menu)
-      queryClient.invalidateQueries(['menus'])
+      setNotification({ message: "Menu berhasil dibuat!", type: 'success' })
+      // Tunggu 2 detik sebelum redirect agar notifikasi terlihat
+      setTimeout(() => {
+        router.push(AppRoutes.Menu)
+        queryClient.invalidateQueries(['menus'])
+      }, 2000)
+    },
+    onError: (error) => {
+      console.error(error)
+      setNotification({ message: "Gagal membuat menu. Silakan coba lagi.", type: 'error' })
     }
   })
 
@@ -57,27 +72,47 @@ export default function NewMenuPage() {
     }
   }, [status, router])
 
+  // Hapus notifikasi setelah 2 detik (jika ada)
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null)
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [notification])
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
 
-    if (!name || !desc || !price || !selectedCategory || !picFile) {
+    // Reset notifikasi sebelumnya
+    setNotification(null)
+
+    // Validasi: pastikan semua field wajib terisi
+    if (!name.trim() || !desc.trim() || !price.trim() || !selectedCategory.trim() || !picFile) {
+      setNotification({ message: 'Semua field wajib diisi.', type: 'error' })
       return
     }
 
-    console.log("submit")
+    // Validasi: harga harus berupa angka valid dan lebih dari 0
+    const parsedPrice = parseFloat(price)
+    if (isNaN(parsedPrice) || parsedPrice <= 0) {
+      setNotification({ message: 'Harga harus angka valid dan lebih dari 0', type: 'error' })
+      return
+    }
 
     setIsCreating(true)
     try {
       await createMenu({
         name,
         desc,
-        price: parseFloat(price),
+        price: parsedPrice,
         categoryId: parseInt(selectedCategory, 10),
         pic: picFile
       })
-      router.push(AppRoutes.Menu)
     } catch (err) {
       console.error(err)
+      setNotification({ message: "Gagal membuat menu. Silakan coba lagi.", type: 'error' })
     } finally {
       setIsCreating(false)
     }
@@ -91,6 +126,16 @@ export default function NewMenuPage() {
       {...({ className: 'flex flex-col justify-center items-center h-[60vh] w-full' } as HTMLMotionProps<'section'>)}
     >
       <form onSubmit={handleSubmit} className="flex gap-4 flex-col sm:w-2/3 md:w-1/3">
+        {/* Inline Notification */}
+        {notification && (
+          <div
+            className={`fixed top-4 right-4 p-4 rounded-md text-white ${
+              notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            }`}
+          >
+            {notification.message}
+          </div>
+        )}
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}

@@ -13,16 +13,22 @@ import { useDispatch } from "react-redux"
 import { setTitle } from "@/lib/features/LayoutState/LayoutSlice"
 import { useSession } from 'next-auth/react'
 
+interface Notification {
+  message: string
+  type: 'success' | 'error'
+}
+
 export default function UpdateDiscountPage() {
   const [name, setName] = useState('')
   const [value, setValue] = useState('')
   const [startPeriod, setStartPeriod] = useState('')
   const [endPeriod, setEndPeriod] = useState('')
+  const [notification, setNotification] = useState<Notification | null>(null)
+
   const router = useRouter()
   const queryClient = useQueryClient()
   const dispatch = useDispatch()
   const { data: session, status } = useSession()
-
   const { id } = useParams()
 
   const { data, isLoading: valuesLoading } = useQuery<Discount>({
@@ -31,7 +37,7 @@ export default function UpdateDiscountPage() {
   })
 
   useEffect(() => {
-    dispatch(setTitle("update discount"));
+    dispatch(setTitle("update discount"))
   }, [dispatch])
 
   useEffect(() => {
@@ -39,6 +45,16 @@ export default function UpdateDiscountPage() {
       router.push(AppRoutes.Auth)
     }
   }, [status, router])
+
+  // Notifikasi akan hilang setelah 2 detik
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null)
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [notification])
 
   const updateDiscountMutation = useMutation({
     mutationFn: updateDiscountFn,
@@ -66,9 +82,20 @@ export default function UpdateDiscountPage() {
       if (context?.previousDiscounts) {
         queryClient.setQueryData<Discount[]>(['discounts'], context.previousDiscounts)
       }
+      setNotification({
+        message: "Failed to update discount. Please try again.",
+        type: 'error'
+      })
     },
     onSuccess: () => {
-      router.push(AppRoutes.Discount)
+      setNotification({
+        message: "Discount updated successfully!",
+        type: 'success'
+      })
+      // Redirect setelah notifikasi sukses tampil selama 2 detik
+      setTimeout(() => {
+        router.push(AppRoutes.Discount)
+      }, 2000)
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['discounts'] })
@@ -78,19 +105,32 @@ export default function UpdateDiscountPage() {
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
 
-    if (name === '' || value === '' || startPeriod === '' || endPeriod === '') {
+    // Validasi: pastikan semua field terisi
+    if (name.trim() === '' || value.trim() === '' || startPeriod.trim() === '' || endPeriod.trim() === '') {
+      setNotification({ message: "Please fill in all fields.", type: 'error' })
       return
     }
+
+    // Validasi: pastikan nilai discount adalah angka positif
+    const numericValue = parseFloat(value)
+    if (isNaN(numericValue) || numericValue <= 0) {
+      setNotification({ message: "Discount harus lebih dari 0.", type: 'error' })
+      return
+    }
+
+    // Jika semua validasi lolos, bersihkan notifikasi sebelumnya
+    setNotification(null)
 
     updateDiscountMutation.mutate({
       id: Number(id),
       name,
-      value: parseFloat(value),
+      value: numericValue,
       startPeriod,
       endPeriod
     })
   }
 
+  // Set form dengan data yang diambil dari API
   useEffect(() => {
     if (data) {
       setName(data.name)
@@ -113,9 +153,16 @@ export default function UpdateDiscountPage() {
       variants={containerVariant}
       initial="hidden"
       animate="visible"
-
       {...({ className: 'flex flex-col justify-center items-center h-[60vh] w-full' } as HTMLMotionProps<'section'>)}
     >
+      {/* Notifikasi Error/Success */}
+      {notification && (
+        <div className={`fixed top-4 right-4 p-4 rounded-md text-white ${
+          notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+        }`}>
+          {notification.message}
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="flex gap-2 flex-col sm:w-2/3 md:w-1/3">
         <input
           value={name}

@@ -13,6 +13,11 @@ import { useDispatch } from 'react-redux'
 import { setTitle } from '@/lib/features/LayoutState/LayoutSlice'
 import { useSession } from 'next-auth/react'
 
+interface Notification {
+  message: string
+  type: 'success' | 'error'
+}
+
 export default function UpdateMenuPage() {
   const [name, setName] = useState('')
   const [desc, setDesc] = useState('')
@@ -20,18 +25,21 @@ export default function UpdateMenuPage() {
   const [selectedCategory, setSelectedCategory] = useState('')
   const [picFile, setPicFile] = useState<File | null>(null)
   const [currentPicUrl, setCurrentPicUrl] = useState('')
+  const [notification, setNotification] = useState<Notification | null>(null)
 
   const router = useRouter()
   const queryClient = useQueryClient()
   const dispatch = useDispatch()
   const { data: session, status } = useSession()
-  const { id } = useParams() 
+  const { id } = useParams()
 
+  // Ambil data Menu berdasarkan ID
   const { data, isLoading: valuesLoading } = useQuery<Menu>({
     queryKey: ['singleMenu', id],
     queryFn: () => getSingleMenuFn(id)
   })
 
+  // Ambil data kategori (fetch ulang setiap render)
   const {
     data: categories,
     isLoading: categoriesLoading,
@@ -57,6 +65,7 @@ export default function UpdateMenuPage() {
     }
   }, [status, router])
 
+  // Set state form dengan data yang diambil
   useEffect(() => {
     if (data) {
       setName(data.name)
@@ -67,12 +76,21 @@ export default function UpdateMenuPage() {
     }
   }, [data])
 
+  // Notifikasi akan hilang setelah 2 detik
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null)
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [notification])
+
   const updateMenuMutation = useMutation({
     mutationFn: updateMenuFn,
     onMutate: async (newMenu) => {
       await queryClient.cancelQueries({ queryKey: ['menus'] })
       const previousMenus = queryClient.getQueryData<Menu[]>(['menus'])
-  
       if (previousMenus) {
         const updatedMenus = previousMenus.map((menu) =>
           menu.id === newMenu.id
@@ -81,16 +99,26 @@ export default function UpdateMenuPage() {
         )
         queryClient.setQueryData<Menu[]>(['menus'], updatedMenus)
       }
-  
       return { previousMenus }
     },
     onError: (err, variables, context: { previousMenus?: Menu[] } | undefined) => {
       if (context?.previousMenus) {
         queryClient.setQueryData<Menu[]>(['menus'], context.previousMenus)
       }
+      setNotification({
+        message: "Update menu gagal. Silakan coba lagi.",
+        type: 'error'
+      })
     },
     onSuccess: () => {
-      router.push(AppRoutes.Menu)
+      setNotification({
+        message: "Menu updated successfully!",
+        type: 'success'
+      })
+      // Redirect setelah notifikasi sukses tampil selama 2 detik
+      setTimeout(() => {
+        router.push(AppRoutes.Menu)
+      }, 2000)
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['menus'] })
@@ -99,8 +127,22 @@ export default function UpdateMenuPage() {
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    // Reset notifikasi sebelumnya
+    setNotification(null)
 
+    // Validasi field wajib
     if (!name || !desc || !price || !selectedCategory) {
+      setNotification({ message: 'Semua field wajib diisi.', type: 'error' })
+      return
+    }
+
+    // Validasi harga harus berupa angka yang valid dan lebih dari 0
+    const parsedPrice = parseFloat(price)
+    if (isNaN(parsedPrice) || parsedPrice <= 0) {
+      setNotification({
+        message: 'Harga harus angka valid dan lebih dari 0',
+        type: 'error'
+      })
       return
     }
 
@@ -115,7 +157,7 @@ export default function UpdateMenuPage() {
       id: Number(id),
       name,
       desc,
-      price: parseFloat(price),
+      price: parsedPrice,
       categoryId: parseInt(selectedCategory, 10)
     }
 
@@ -142,6 +184,14 @@ export default function UpdateMenuPage() {
       animate="visible"
       {...({ className: 'flex flex-col justify-center items-center h-[80vh] w-full' } as HTMLMotionProps<'section'>)}
     >
+      {/* Notifikasi Error/Success */}
+      {notification && (
+        <div className={`fixed top-4 right-4 p-4 rounded-md text-white ${
+          notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+        }`}>
+          {notification.message}
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="flex gap-2 flex-col sm:w-2/3 md:w-1/3">
         <input
           value={name}
@@ -178,7 +228,7 @@ export default function UpdateMenuPage() {
             ))}
         </select>
 
-        {/* Tampilkan preview gambar saat ini */}
+        {/* Preview gambar saat ini */}
         {currentPicUrl && (
           <div className="w-full">
             <img
@@ -214,11 +264,7 @@ export default function UpdateMenuPage() {
           <Link href={AppRoutes.Menu} className="btn-primary">
             Cancel
           </Link>
-          <button
-            disabled={updateMenuMutation.isLoading}
-            type="submit"
-            className="btn-primary"
-          >
+          <button disabled={updateMenuMutation.isLoading} type="submit" className="btn-primary">
             Update
           </button>
         </div>

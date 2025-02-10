@@ -13,15 +13,21 @@ import { useDispatch } from 'react-redux'
 import { setTitle } from '@/lib/features/LayoutState/LayoutSlice'
 import { useSession } from 'next-auth/react'
 
+interface Notification {
+  message: string
+  type: 'success' | 'error'
+}
+
 export default function UpdateCategoryPage() {
   const [name, setName] = useState('')
+  const [notification, setNotification] = useState<Notification | null>(null)
   const router = useRouter()
   const queryClient = useQueryClient()
   const dispatch = useDispatch()
   const { data: session, status } = useSession()
-
   const { id } = useParams()
 
+  // Ambil data category berdasarkan id
   const { data, isLoading: valuesLoading } = useQuery<Category>({
     queryKey: ['singleCategory', id],
     queryFn: () => getSingleCategoryFn(id)
@@ -36,6 +42,23 @@ export default function UpdateCategoryPage() {
       router.push(AppRoutes.Auth)
     }
   }, [status, router])
+
+  // Notifikasi akan hilang setelah 2 detik
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null)
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [notification])
+
+  // Set nilai form ketika data berhasil diambil
+  useEffect(() => {
+    if (data) {
+      setName(data.name)
+    }
+  }, [data])
 
   const updateCategoryMutation = useMutation({
     mutationFn: updateCategoryFn,
@@ -54,9 +77,20 @@ export default function UpdateCategoryPage() {
       if (context?.previousCategories) {
         queryClient.setQueryData<Category[]>(['categories'], context.previousCategories)
       }
+      setNotification({
+        message: "Failed to update category. Please try again.",
+        type: 'error'
+      })
     },
     onSuccess: () => {
-      router.push(AppRoutes.Category)
+      setNotification({
+        message: "Category updated successfully!",
+        type: 'success'
+      })
+      // Redirect setelah notifikasi sukses tampil selama 2 detik
+      setTimeout(() => {
+        router.push(AppRoutes.Category)
+      }, 2000)
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] })
@@ -65,8 +99,15 @@ export default function UpdateCategoryPage() {
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    // Bersihkan notifikasi sebelumnya
+    setNotification(null)
 
+    // Validasi input: pastikan nama category tidak kosong
     if (name.trim() === '') {
+      setNotification({
+        message: "Category Name harus diisi",
+        type: 'error'
+      })
       return
     }
 
@@ -75,12 +116,6 @@ export default function UpdateCategoryPage() {
       name
     })
   }
-
-  useEffect(() => {
-    if (data) {
-      setName(data.name)
-    }
-  }, [data])
 
   if (valuesLoading)
     return (
@@ -97,6 +132,16 @@ export default function UpdateCategoryPage() {
       animate="visible"
       {...({ className: 'flex flex-col justify-center items-center h-[60vh] w-full' } as HTMLMotionProps<'section'>)}
     >
+      {/* Notifikasi Error/Success */}
+      {notification && (
+        <div
+          className={`fixed top-4 right-4 p-4 rounded-md text-white ${
+            notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+          }`}
+        >
+          {notification.message}
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="flex gap-2 flex-col sm:w-2/3 md:w-1/3">
         <input
           value={name}

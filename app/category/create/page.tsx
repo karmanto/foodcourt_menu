@@ -13,17 +13,33 @@ import { useSession } from 'next-auth/react'
 
 export default function NewCategoryPage() {
   const dispatch = useDispatch()
-  const [isCreating, setIsCreating] = useState(false)
-  const [name, setName] = useState('')
   const router = useRouter()
   const queryClient = useQueryClient()
   const { data: session, status } = useSession()
 
+  // State form
+  const [name, setName] = useState('')
+  const [isCreating, setIsCreating] = useState(false)
+
+  // State notifikasi (null jika tidak ada notifikasi)
+  const [notification, setNotification] = useState<{
+    message: string
+    type: 'success' | 'error'
+  } | null>(null)
+
   const { mutateAsync: createCategory } = useMutation({
     mutationFn: createCategoryFn,
     onSuccess: () => {
-      router.push(AppRoutes.Category)
-      queryClient.invalidateQueries(['categories'])
+      setNotification({ message: "Category successfully created!", type: 'success' })
+      // Tunggu 2 detik agar notifikasi terlihat sebelum redirect
+      setTimeout(() => {
+        router.push(AppRoutes.Category)
+        queryClient.invalidateQueries(['categories'])
+      }, 2000)
+    },
+    onError: (error) => {
+      console.error(error)
+      setNotification({ message: "Failed to create category. Please try again.", type: 'error' })
     }
   })
 
@@ -37,18 +53,37 @@ export default function NewCategoryPage() {
     }
   }, [status, router])
 
+  // Hapus notifikasi setelah 2 detik (jika ada)
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null)
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [notification])
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
 
-    if (!name) {
+    // Reset notifikasi sebelumnya
+    setNotification(null)
+
+    // Validasi: Pastikan field category name tidak kosong
+    if (!name.trim()) {
+      setNotification({ message: "Category name is required.", type: "error" })
       return
     }
 
+    setIsCreating(true)
+
     try {
       await createCategory({ name })
-      router.push(AppRoutes.Category)
     } catch (err) {
       console.error(err)
+      setNotification({ message: "An error occurred while creating the category.", type: "error" })
+    } finally {
+      setIsCreating(false)
     }
   }
 
@@ -60,6 +95,16 @@ export default function NewCategoryPage() {
       {...({ className: 'flex flex-col justify-center items-center h-[60vh] w-full' } as HTMLMotionProps<'section'>)}
     >
       <form onSubmit={handleSubmit} className="flex gap-4 flex-col sm:w-2/3 md:w-1/3">
+        {/* Inline Notification */}
+        {notification && (
+          <div
+            className={`fixed top-4 right-4 p-4 rounded-md text-white ${
+              notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            }`}
+          >
+            {notification.message}
+          </div>
+        )}
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}

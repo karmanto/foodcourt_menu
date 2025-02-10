@@ -14,17 +14,19 @@ export async function POST(req: Request) {
   const cyrptedPassword = await hash(password, 12)
   //todo: handle error for cyrpted password hash method.
 
-  try {
-    const user = await prisma.user.create({
-      data: {
-        name: name,
-        email: email,
-        password: cyrptedPassword
-      }
-    })
+  return new Response('Failed to create user', { status: 500 })
 
-    return new Response(JSON.stringify(user), { status: 201 })
-  } catch (error) {
-    return new Response('Failed to create user', { status: 500 })
-  }
+  // try {
+  //   const user = await prisma.user.create({
+  //     data: {
+  //       name: name,
+  //       email: email,
+  //       password: cyrptedPassword
+  //     }
+  //   })
+
+  //   return new Response(JSON.stringify(user), { status: 201 })
+  // } catch (error) {
+  //   return new Response('Failed to create user', { status: 500 })
+  // }
 }
