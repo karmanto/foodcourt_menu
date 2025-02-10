@@ -1,8 +1,7 @@
 import { prisma } from '@/prisma/db'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../auth/[...nextauth]/route'
-import fs from 'fs'
-import path from 'path'
+import { put } from '@vercel/blob'
 
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions)
@@ -74,24 +73,19 @@ export async function POST(req: Request) {
     }
 
     const uploadedFile = file as File
-    const extension = uploadedFile.name.split('.').pop()
-    const fileName = `${Date.now()}.${extension}`
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads')
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true })
-    }
-    const filePath = path.join(uploadsDir, fileName)
-    const buffer = Buffer.from(await uploadedFile.arrayBuffer())
-    fs.writeFileSync(filePath, buffer)
+    const filename = `${Date.now()}-${uploadedFile.name}`
 
-    const pic_url = `/uploads/${fileName}`
+    const blob = await put(filename, uploadedFile, {
+      access: 'public',
+      token: process.env.BLOB_READ_WRITE_TOKEN
+    })
 
     const menu = await prisma.menu.create({
       data: {
         name: name as string,
         desc: desc as string,
         price,
-        pic_url,
+        pic_url: blob.url, 
         category: {
           connect: { id: categoryId }
         }

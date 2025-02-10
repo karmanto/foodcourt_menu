@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../auth/[...nextauth]/route' 
+import { put, del } from '@vercel/blob' 
 
 export async function GET(
   req: Request,
@@ -53,6 +54,7 @@ export async function PATCH(
 
     const formData = await req.formData()
 
+    // Validasi field
     const name = formData.get('name')
     const desc = formData.get('desc')
     const priceStr = formData.get('price')
@@ -70,39 +72,33 @@ export async function PATCH(
     const file = formData.get('pic')
     if (file && typeof file !== 'string') {
       const uploadedFile = file as File
-      const extension = uploadedFile.name.split('.').pop()
-      const fileName = `${Date.now()}.${extension}`
-      const uploadsDir = path.join(process.cwd(), 'public', 'uploads')
+      const filename = `${Date.now()}-${uploadedFile.name}`
 
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true })
-      }
+      // Upload file baru ke Vercel Blob
+      const blob = await put(filename, uploadedFile, {
+        access: 'public',
+        token: process.env.BLOB_READ_WRITE_TOKEN
+      })
+      newPicUrl = blob.url
 
-      const filePath = path.join(uploadsDir, fileName)
-      const buffer = Buffer.from(await uploadedFile.arrayBuffer())
-      fs.writeFileSync(filePath, buffer)
-
-      newPicUrl = `/uploads/${fileName}`
-
+      // Hapus file lama dari Blob jika ada
       if (existingMenu.pic_url) {
-        const oldFilePath = path.join(process.cwd(), 'public', existingMenu.pic_url)
-        if (fs.existsSync(oldFilePath)) {
-          fs.unlinkSync(oldFilePath)
+        try {
+          await del(existingMenu.pic_url, {
+            token: process.env.BLOB_READ_WRITE_TOKEN
+          })
+        } catch (error) {
+          console.error('Gagal menghapus file lama:', error)
         }
       }
     }
 
-    const updateData: any = {
+    const updateData = {
       name: name as string,
       desc: desc as string,
       price,
-      category: {
-        connect: { id: categoryId },
-      },
-    }
-
-    if (newPicUrl) {
-      updateData.pic_url = newPicUrl
+      category: { connect: { id: categoryId } },
+      ...(newPicUrl && { pic_url: newPicUrl })
     }
 
     const updatedMenu = await prisma.menu.update({
@@ -129,7 +125,6 @@ export async function DELETE(
   const id = Number(params.id)
 
   try {
-    // Cari data Menu yang akan dihapus
     const menuToDelete = await prisma.menu.findUnique({
       where: { id },
     })
@@ -138,15 +133,18 @@ export async function DELETE(
       return new Response('Menu not found', { status: 404 })
     }
 
-    // Jika ada file gambar yang tersimpan, hapus dari folder uploads
+    // Hapus file dari Blob jika ada
     if (menuToDelete.pic_url) {
-      const filePath = path.join(process.cwd(), 'public', menuToDelete.pic_url)
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath)
+      try {
+        await del(menuToDelete.pic_url, {
+          token: process.env.BLOB_READ_WRITE_TOKEN
+        })
+      } catch (error) {
+        console.error('Gagal menghapus file:', error)
       }
     }
 
-    // Hapus data Menu dari database
+    // Hapus data dari database
     const deletedMenu = await prisma.menu.delete({
       where: { id },
     })
