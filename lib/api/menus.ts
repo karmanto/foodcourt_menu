@@ -43,18 +43,14 @@ export async function getMenusFn({
     formData.append('categoryId', newMenu.categoryId.toString());
     formData.append('pic', newMenu.pic);
   
-    try {
-      const res = await fetch('/api/menus', {
-        method: 'POST',
-        body: formData,
-      });
-      if (!res.ok) {
-        throw new Error('Failed to create menu');
-      }
-      return await res.json();
-    } catch (err) {
-      console.error(err);
+    const res = await fetch('/api/menus', {
+      method: 'POST',
+      body: formData,
+    });
+    if (!res.ok) {
+      throw new Error('Failed to create menu');
     }
+    return await res.json();
   }
   
   export type UpdateMenu = {
@@ -83,33 +79,25 @@ export async function getMenusFn({
       formData.append('pic', pic);
     }
   
-    try {
-      const res = await fetch(`/api/menus/${id}`, {
-        method: 'PATCH',
-        body: formData,
-      });
-      if (!res.ok) {
-        throw new Error('Failed to update menu');
-      }
-      return await res.json();
-    } catch (err) {
-      console.error(err);
+    const res = await fetch(`/api/menus/${id}`, {
+      method: 'PATCH',
+      body: formData,
+    });
+    if (!res.ok) {
+      throw new Error('Failed to update menu');
     }
+    return await res.json();
   }
   
   export async function deleteMenuFn(id: number) {
-    try {
-      const res = await fetch(`/api/menus/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (!res.ok) {
-        throw new Error('Failed to delete menu');
-      }
-    } catch (err) {
-      console.error(err);
+    const res = await fetch(`/api/menus/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!res.ok) {
+      throw new Error('Failed to delete menu');
     }
   }
   

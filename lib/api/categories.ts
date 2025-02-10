@@ -29,38 +29,30 @@ export async function getCategoriesFn({
   
   export async function createCategoryFn(newCategory: NewCategory) {
     const { name } = newCategory;
-    try {
-      const res = await fetch('/api/categories', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ name })
-      });
-  
-      if (!res.ok) {
-        throw new Error('Failed to create category');
-      }
-      return await res.json();
-    } catch (err) {
-      console.error(err);
+    const res = await fetch('/api/categories', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ name })
+    });
+
+    if (!res.ok) {
+      throw new Error('Failed to create category');
     }
+    return await res.json();
   }
   
   export async function deleteCategoryFn(id: number) {
-    try {
-      const res = await fetch(`/api/categories/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-  
-      if (!res.ok) {
-        throw new Error('Failed to delete category');
+    const res = await fetch(`/api/categories/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
       }
-    } catch (err) {
-      console.error(err);
+    });
+
+    if (!res.ok) {
+      throw new Error('Failed to delete category');
     }
   }
   
@@ -73,22 +65,18 @@ export async function getCategoriesFn({
     id,
     name
   }: UpdateCategoryTypes) {
-    try {
-      const res = await fetch(`/api/categories/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ name })
-      });
-  
-      if (!res.ok) {
-        throw new Error('Failed to update category');
-      }
-      return await res.json();
-    } catch (err) {
-      console.error(err);
+    const res = await fetch(`/api/categories/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ name })
+    });
+
+    if (!res.ok) {
+      throw new Error('Failed to update category');
     }
+    return await res.json();
   }
   
   export async function getSingleCategoryFn(id: string) {

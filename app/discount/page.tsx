@@ -14,7 +14,6 @@ import Link from 'next/link'
 import { IoCreateOutline as Add, IoSearchOutline as Search } from 'react-icons/io5'
 import { RiFilter3Line as Filter } from 'react-icons/ri'
 import { containerVariant } from '@/lib/framer-motion/variants'
-import { createDiscountFn } from '@/lib/api/discounts'
 import { motion, HTMLMotionProps } from 'framer-motion'
 
 export default function DiscountPage() {

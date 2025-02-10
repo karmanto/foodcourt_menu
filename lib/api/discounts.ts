@@ -42,39 +42,31 @@ type NewDiscount = {
 
 export async function createDiscountFn(newDiscount: NewDiscount) {
   const { name, value, startPeriod, endPeriod } = newDiscount
-  try {
-    const res = await fetch('/api/discounts', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ name, value, startPeriod, endPeriod })
-    })
+  const res = await fetch('/api/discounts', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ name, value, startPeriod, endPeriod })
+  })
 
-    if (!res.ok) {
-      throw new Error('Failed to create discount')
-    }
-
-    return await res.json()
-  } catch (err) {
-    console.error(err)
+  if (!res.ok) {
+    throw new Error('Failed to create discount')
   }
+
+  return await res.json()
 }
 
 export async function deleteDiscountFn(id: number) {
-  try {
-    const res = await fetch(`/api/discounts/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-
-    if (!res.ok) {
-      throw new Error('Failed to delete discount')
+  const res = await fetch(`/api/discounts/${id}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json'
     }
-  } catch (err) {
-    console.error(err)
+  })
+
+  if (!res.ok) {
+    throw new Error('Failed to delete discount')
   }
 }
 
@@ -93,28 +85,24 @@ export async function updateDiscountFn({
   startPeriod,
   endPeriod
 }: UpdateDiscountTypes) {
-  try {
-    const res = await fetch(`/api/discounts/${id}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        name,
-        value,
-        startPeriod,
-        endPeriod
-      })
+  const res = await fetch(`/api/discounts/${id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      name,
+      value,
+      startPeriod,
+      endPeriod
     })
+  })
 
-    if (!res.ok) {
-      throw new Error('Failed to update discount')
-    }
-
-    return await res.json()
-  } catch (err) {
-    console.error(err)
+  if (!res.ok) {
+    throw new Error('Failed to update discount')
   }
+
+  return await res.json()
 }
 
 export async function getSingleDiscountFn(id: string) {
