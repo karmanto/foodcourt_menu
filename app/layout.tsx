@@ -25,7 +25,7 @@ export default async function RootLayout({
     <html lang='en'>
       <StoreProvider>
         <body
-          className={`${inter.className} bg-primary text-black min-h-screen font-medium`}
+          className={`${inter.className} bg-primary text-black font-medium`}
         >
           {/* HEADER */}
           <header className='flex justify-between items-center px-4 py-2'>
@@ -34,13 +34,12 @@ export default async function RootLayout({
           </header>
 
           {/* CONTENT */}
-          <main className='flex h-[80vh] flex-col items-center px-4 overflow-auto'>
+          <main className='flex flex-col items-center px-4'>
             <Providers>{children}</Providers>
           </main>
           {/* FOOTER */}
           <footer
-            className='w-full  p-2 border-t
-          absolute bottom-0'
+            className='w-full p-2 border-t absolute bottom-0'
           >
             <div className='flex flex-col text-sm items-center'>
               <span>NATA FOODCOURT</span>

@@ -14,6 +14,7 @@ export async function GET(req: Request) {
     const limit = parseInt(searchParams.get('limit') || '10', 10)
     const monthParam = searchParams.get('month')
     const yearParam = searchParams.get('year')
+    const search = searchParams.get('search') || ''
 
     let dateFilter = {}
     if (monthParam && yearParam) {
@@ -29,9 +30,17 @@ export async function GET(req: Request) {
       }
     }
 
+    let searchFilter = {}
+    if (search) {
+      searchFilter = {
+        name: { contains: search, mode: 'insensitive' }
+      }
+    }
+
     const data = await prisma.discount.findMany({
       where: {
-        ...dateFilter
+        ...dateFilter,
+        ...searchFilter
       },
       orderBy: { createdAt: 'desc' },
       skip,

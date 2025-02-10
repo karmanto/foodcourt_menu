@@ -2,12 +2,14 @@ export async function getDiscountsFn({
   skip = 0,
   limit = 10,
   month,
-  year
+  year,
+  search
 }: {
   skip?: number;
   limit?: number;
   month?: number;
   year?: number;
+  search?: string;
 } = {}) {
   const params = new URLSearchParams();
   params.set('skip', skip.toString());
@@ -18,6 +20,9 @@ export async function getDiscountsFn({
   }
   if (year !== undefined) {
     params.set('year', year.toString());
+  }
+  if (search) {
+    params.set('search', search);
   }
   
   const res = await fetch(`/api/discounts?${params.toString()}`);

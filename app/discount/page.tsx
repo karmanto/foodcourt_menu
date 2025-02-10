@@ -11,10 +11,11 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { AppRoutes } from '@/lib/utils/constants/AppRoutes'
 import Link from 'next/link'
-import { IoCreateOutline as Add } from 'react-icons/io5'
-import { 
-  RiFilter3Line as Filter, 
-} from 'react-icons/ri'
+import { IoCreateOutline as Add, IoSearchOutline as Search } from 'react-icons/io5'
+import { RiFilter3Line as Filter } from 'react-icons/ri'
+import { containerVariant } from '@/lib/framer-motion/variants'
+import { createDiscountFn } from '@/lib/api/discounts'
+import { motion, HTMLMotionProps } from 'framer-motion'
 
 export default function DiscountPage() {
   const dispatch = useDispatch()
@@ -27,25 +28,9 @@ export default function DiscountPage() {
   const [selectedYear, setSelectedYear] = useState<number | undefined>(undefined)
   const [selectedMonth, setSelectedMonth] = useState<number | undefined>(undefined)
 
-  const {
-    data,
-    isLoading,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    error
-  } = useInfiniteQuery({
-    queryKey: ['discounts', selectedYear, selectedMonth],
-    queryFn: async ({ pageParam = 0 }) => {
-      return getDiscountsFn({ skip: pageParam, limit: 10, year: selectedYear, month: selectedMonth })
-    },
-    getNextPageParam: (lastPage, allPages) => {
-      if (lastPage.length < 10) return undefined
-      return allPages.length * 10
-    }
-  })
-
-  const loadMoreRef = useRef<HTMLDivElement>(null)
+  // State untuk search: kita tunggu enter atau klik tombol search
+  const [searchInput, setSearchInput] = useState<string>('')
+  const [searchQuery, setSearchQuery] = useState<string>('')
 
   useEffect(() => {
     dispatch(setTitle('discount'))
@@ -56,6 +41,32 @@ export default function DiscountPage() {
       router.push(AppRoutes.Auth)
     }
   }, [status, router])
+
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    error
+  } = useInfiniteQuery({
+    queryKey: ['discounts', selectedYear, selectedMonth, searchQuery],
+    queryFn: async ({ pageParam = 0 }) => {
+      return getDiscountsFn({ 
+        skip: pageParam, 
+        limit: 10, 
+        year: selectedYear, 
+        month: selectedMonth,
+        search: searchQuery
+      })
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.length < 10) return undefined
+      return allPages.length * 10
+    }
+  })
+
+  const loadMoreRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -97,23 +108,47 @@ export default function DiscountPage() {
   const discounts: Discount[] = data?.pages?.flat() || []
 
   return (
-    <div className="flex flex-col items-center w-full">
-      <div className="w-full md:w-2/3 flex items-center my-4">
-        <button className="btn-primary mr-2 ml-auto" onClick={() => setFilterModalOpen(true)}>
-          <Filter className='inline' fontSize={20} />
+    <motion.section
+      variants={containerVariant}
+      initial='hidden'
+      animate='visible'
+
+      {...({ className: 'flex flex-col justify-center items-center w-full' } as HTMLMotionProps<'section'>)}
+    >
+      <div className="w-full flex items-center my-4 gap-2">
+        <input
+          type="text"
+          placeholder="Search discounts..."
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              setSearchQuery(searchInput)
+            }
+          }}
+          className="input-primary flex-grow"
+        />
+        <button 
+          className="btn-primary"
+          onClick={() => setSearchQuery(searchInput)}
+        >
+          <Search className="inline" fontSize={20} />
+        </button>
+        <button className="btn-primary" onClick={() => setFilterModalOpen(true)}>
+          <Filter className="inline" fontSize={20} />
         </button>
         <Link href={AppRoutes.CreateDiscount} className="btn-primary">
-          <Add className='inline' fontSize={20} />
+          <Add className="inline" fontSize={20} />
         </Link>
       </div>
 
       {discounts.length === 0 ? (
-        <div className="flex h-[40vh] items-center justify-center">
+        <div className="flex h-[40vh] w-full items-center justify-center">
           <p className="text-center text-h3">Data tidak ditemukan.</p>
         </div>
       ) : (
-        <>
-          <ul className="w-full md:w-2/3">
+        <div className="flex w-full flex-col items-center overflow-auto h-[70vh]" style={{ height: "calc(100vh - 190px)" }}>
+          <ul className="w-full">
             {discounts.map((discount: Discount) => (
               <DiscountItem key={discount.id} {...discount} />
             ))}
@@ -121,7 +156,7 @@ export default function DiscountPage() {
           <div ref={loadMoreRef} className="flex justify-center items-center py-4">
             {isFetchingNextPage && <Loading />}
           </div>
-        </>
+        </div>
       )}
 
       {filterModalOpen && (
@@ -166,7 +201,7 @@ export default function DiscountPage() {
                   setSelectedYear(tempYear ? parseInt(tempYear) : undefined)
                   setSelectedMonth(tempMonth ? parseInt(tempMonth) : undefined)
                   setFilterModalOpen(false)
-                  queryClient.invalidateQueries(['discounts', selectedYear, selectedMonth])
+                  queryClient.invalidateQueries(['discounts'])
                 }}
               >
                 Apply
@@ -175,6 +210,6 @@ export default function DiscountPage() {
           </div>
         </div>
       )}
-    </div>
+    </motion.section>
   )
 }
