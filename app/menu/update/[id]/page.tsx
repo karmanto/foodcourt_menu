@@ -33,13 +33,11 @@ export default function UpdateMenuPage() {
   const { data: session, status } = useSession()
   const { id } = useParams()
 
-  // Ambil data Menu berdasarkan ID
   const { data, isLoading: valuesLoading } = useQuery<Menu>({
     queryKey: ['singleMenu', id],
     queryFn: () => getSingleMenuFn(id)
   })
 
-  // Ambil data kategori (fetch ulang setiap render)
   const {
     data: categories,
     isLoading: categoriesLoading,
@@ -65,7 +63,6 @@ export default function UpdateMenuPage() {
     }
   }, [status, router])
 
-  // Set state form dengan data yang diambil
   useEffect(() => {
     if (data) {
       setName(data.name)
@@ -76,7 +73,6 @@ export default function UpdateMenuPage() {
     }
   }, [data])
 
-  // Notifikasi akan hilang setelah 2 detik
   useEffect(() => {
     if (notification) {
       const timer = setTimeout(() => {
@@ -115,7 +111,6 @@ export default function UpdateMenuPage() {
         message: "Menu updated successfully!",
         type: 'success'
       })
-      // Redirect setelah notifikasi sukses tampil selama 2 detik
       setTimeout(() => {
         router.push(AppRoutes.Menu)
       }, 2000)
@@ -127,16 +122,13 @@ export default function UpdateMenuPage() {
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    // Reset notifikasi sebelumnya
     setNotification(null)
 
-    // Validasi field wajib
     if (!name || !desc || !price || !selectedCategory) {
       setNotification({ message: 'Semua field wajib diisi.', type: 'error' })
       return
     }
 
-    // Validasi harga harus berupa angka yang valid dan lebih dari 0
     const parsedPrice = parseFloat(price)
     if (isNaN(parsedPrice) || parsedPrice <= 0) {
       setNotification({
@@ -184,7 +176,6 @@ export default function UpdateMenuPage() {
       animate="visible"
       {...({ className: 'flex flex-col justify-center items-center h-[80vh] w-full' } as HTMLMotionProps<'section'>)}
     >
-      {/* Notifikasi Error/Success */}
       {notification && (
         <div className={`fixed top-4 right-4 p-4 rounded-md text-white ${
           notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
@@ -228,7 +219,6 @@ export default function UpdateMenuPage() {
             ))}
         </select>
 
-        {/* Preview gambar saat ini */}
         {currentPicUrl && (
           <div className="w-full">
             <img
@@ -239,13 +229,13 @@ export default function UpdateMenuPage() {
           </div>
         )}
 
-        {/* Custom File Input untuk update gambar (opsional) */}
         <div className="w-full">
           <label
             htmlFor="file-upload"
+            style={{ wordBreak: "break-all", whiteSpace: "normal" }}
             className="block w-full cursor-pointer border border-gray-300 rounded-md p-2 text-center bg-gray-50"
           >
-            {picFile ? picFile.name : "Select New Image (optional)"}
+            {picFile ? picFile.name : "Change Image?"}
           </label>
           <input
             id="file-upload"
