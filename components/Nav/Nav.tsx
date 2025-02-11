@@ -58,17 +58,17 @@ export default function Nav({ session }: NavProps) {
               pathname === route ? 'pointer-events-none opacity-50' : ''
             }`}
           >
-            <Icon className='inline' fontSize={20} />
-            <span className='hidden md:inline ml-2'>{title}</span>
+            <Icon className="inline" fontSize={20} />
+            <span className="hidden md:inline ml-2">{title}</span>
           </Link>
         ) : (
           <button
             key={title}
             onClick={method}
-            className='flex items-center p-2 rounded-md hover:bg-gray-200 transition'
+            className="flex items-center p-2 rounded-md hover:bg-gray-200 transition"
           >
-            <Icon className='inline' fontSize={20} />
-            <span className='hidden md:inline ml-2'>{title}</span>
+            <Icon className="inline" fontSize={20} />
+            <span className="hidden md:inline ml-2">{title}</span>
           </button>
         )
       )
@@ -81,34 +81,47 @@ export default function Nav({ session }: NavProps) {
         <Link
           key={title}
           href={route!}
-          className='flex items-center p-2 rounded-md hover:bg-gray-200 transition'
+          className="flex items-center p-2 rounded-md hover:bg-gray-200 transition"
+          // Klik pada link juga akan menutup dropdown
+          onClick={() => setIsOpen(false)}
         >
-          <Icon className='inline' fontSize={20} />
-          <span className='ml-2'>{title}</span>
+          <Icon className="inline" fontSize={20} />
+          <span className="ml-2">{title}</span>
         </Link>
       ))
   }
 
   return (
-    <nav className='relative flex z-50 items-center gap-4'>
-      <div className='flex gap-2'>{renderMainNavButtons()}</div>
+    <nav className="relative flex z-50 items-center gap-4">
+      <div className="flex gap-2">{renderMainNavButtons()}</div>
 
       {session && (
-        <div className='relative'>
+        <div className="relative">
           <button
-            className='p-2 rounded-md hover:bg-gray-200 transition'
-            onClick={() => setIsOpen(!isOpen)}
+            className="p-2 rounded-md hover:bg-gray-200 transition"
+            onClick={() => setIsOpen((prev) => !prev)}
           >
             <AiOutlineMenu fontSize={24} />
           </button>
 
-          <div
-            className={`absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md p-2 flex flex-col gap-2 transition-transform transform ${
-              isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'
-            }`}
-          >
-            {renderDropdownNavButtons()}
-          </div>
+          {isOpen && (
+            <>
+              {/* Overlay yang menutupi seluruh layar, 
+                  klik di overlay akan menutup dropdown */}
+              <div
+                onClick={() => setIsOpen(false)}
+                className="fixed inset-0 z-40"
+              />
+              {/* Dropdown */}
+              <div
+                className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md p-2 flex flex-col gap-2 z-50"
+                // Jika dropdown diklik (misal, area kosong di dalamnya), langsung tertutup
+                onClick={() => setIsOpen(false)}
+              >
+                {renderDropdownNavButtons()}
+              </div>
+            </>
+          )}
         </div>
       )}
     </nav>
