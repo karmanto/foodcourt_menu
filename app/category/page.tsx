@@ -111,12 +111,6 @@ export default function CategoryPage() {
           }}
           className="input-primary flex-grow"
         />
-        <button 
-          className="btn-primary"
-          onClick={() => setSearchQuery(searchInput)}
-        >
-          <Search className="inline" fontSize={20} />
-        </button>
         <Link href={AppRoutes.CreateCategory} className="btn-primary">
           <Add className="inline" fontSize={20} />
         </Link>

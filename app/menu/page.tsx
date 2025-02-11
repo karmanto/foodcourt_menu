@@ -140,9 +140,6 @@ export default function MenuPage() {
           }}
           className="input-primary flex-grow"
         />
-        <button className="btn-primary" onClick={() => setSearchQuery(searchInput)}>
-          <Search className="inline" fontSize={20} />
-        </button>
         <button className="btn-primary" onClick={() => setFilterModalOpen(true)}>
           <Filter className="inline" fontSize={20} />
         </button>
