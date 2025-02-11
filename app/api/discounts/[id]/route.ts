@@ -37,6 +37,10 @@ export async function PATCH(
   const { name, value, startPeriod, endPeriod } = await req.json()
   const id = Number(params.id)
 
+  if (!name || !value || !startPeriod || !endPeriod) {
+    return new Response('Missing required fields', { status: 400 })
+  }
+
   try {
     const data = await prisma.discount.update({
       where: { id },

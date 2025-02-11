@@ -37,6 +37,10 @@ export async function PATCH(
   const { name } = await req.json()
   const id = Number(params.id)
 
+  if (!name) {
+    return new Response('Missing required fields', { status: 400 })
+  }
+
   try {
     const data = await prisma.category.update({
       where: { id },

@@ -1,9 +1,8 @@
 import { prisma } from '@/prisma/db'
-import fs from 'fs'
-import path from 'path'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../auth/[...nextauth]/route' 
 import { put, del } from '@vercel/blob' 
+import sharp from 'sharp'
 
 export async function GET(
   req: Request,
@@ -72,16 +71,26 @@ export async function PATCH(
     const file = formData.get('pic')
     if (file && typeof file !== 'string') {
       const uploadedFile = file as File
+
+      if (!uploadedFile.type.startsWith('image/')) {
+        return new Response('Invalid file type', { status: 400 });
+      }
+
+      const arrayBuffer = await uploadedFile.arrayBuffer()
+      const inputBuffer = Buffer.from(arrayBuffer)
+
+      const resizedBuffer = await sharp(inputBuffer)
+        .resize({ width: 600, fit: 'inside' })
+        .toBuffer()
+
       const filename = `${Date.now()}-${uploadedFile.name}`
 
-      // Upload file baru ke Vercel Blob
-      const blob = await put(filename, uploadedFile, {
+      const blob = await put(filename, resizedBuffer, {
         access: 'public',
         token: process.env.BLOB_READ_WRITE_TOKEN
       })
       newPicUrl = blob.url
 
-      // Hapus file lama dari Blob jika ada
       if (existingMenu.pic_url) {
         try {
           await del(existingMenu.pic_url, {
@@ -133,7 +142,6 @@ export async function DELETE(
       return new Response('Menu not found', { status: 404 })
     }
 
-    // Hapus file dari Blob jika ada
     if (menuToDelete.pic_url) {
       try {
         await del(menuToDelete.pic_url, {
@@ -144,7 +152,6 @@ export async function DELETE(
       }
     }
 
-    // Hapus data dari database
     const deletedMenu = await prisma.menu.delete({
       where: { id },
     })

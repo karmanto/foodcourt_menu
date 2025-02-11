@@ -43,8 +43,13 @@ export async function POST(req: Request) {
     return new Response('Session not found', { status: 401 })
   }
 
+  const { name } = await req.json()
+
+  if (!name) {
+    return new Response('Missing required fields', { status: 400 })
+  }
+
   try {
-    const { name } = await req.json()
     const data = await prisma.category.create({
       data: {
         name

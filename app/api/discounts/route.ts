@@ -63,6 +63,10 @@ export async function POST(req: Request) {
 
   const { name, value, startPeriod, endPeriod } = await req.json()
 
+  if (!name || !value || !startPeriod || !endPeriod) {
+    return new Response('Missing required fields', { status: 400 })
+  }
+
   try {
     const data = await prisma.discount.create({
       data: {

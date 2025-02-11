@@ -2,6 +2,7 @@ import { prisma } from '@/prisma/db'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../auth/[...nextauth]/route'
 import { put } from '@vercel/blob'
+import sharp from 'sharp'
 
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions)
@@ -73,9 +74,21 @@ export async function POST(req: Request) {
     }
 
     const uploadedFile = file as File
+    
+    if (!uploadedFile.type.startsWith('image/')) {
+      return new Response('Invalid file type', { status: 400 });
+    }
+
+    const arrayBuffer = await uploadedFile.arrayBuffer()
+    const inputBuffer = Buffer.from(arrayBuffer)
+
+    const resizedBuffer = await sharp(inputBuffer)
+      .resize({ width: 600, fit: 'inside' }) 
+      .toBuffer()
+
     const filename = `${Date.now()}-${uploadedFile.name}`
 
-    const blob = await put(filename, uploadedFile, {
+    const blob = await put(filename, resizedBuffer, {
       access: 'public',
       token: process.env.BLOB_READ_WRITE_TOKEN
     })
