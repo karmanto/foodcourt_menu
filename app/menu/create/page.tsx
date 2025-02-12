@@ -174,6 +174,7 @@ export default function NewMenuPage() {
         <div className="w-full">
           <label
             htmlFor="file-upload"
+            style={{ wordBreak: "break-all", whiteSpace: "normal" }}
             className="block w-full cursor-pointer border border-gray-300 rounded-md p-2 text-center bg-gray-50"
           >
             {picFile ? picFile.name : "Select Image"}
