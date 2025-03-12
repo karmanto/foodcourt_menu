@@ -3,17 +3,25 @@ import { prisma } from './db'
 
 async function main() {
   const password = await hash('BismillahLaris2025', 12)
-
-  const user = await prisma.user.upsert({
-    where: { email: 'test@test.com' },
+  await prisma.user.upsert({
+    where: { email: 'admin@gmail.com' },
     update: {},
     create: {
       email: 'admin@gmail.com',
       name: 'admin',
-      password
-    }
+      password,
+    },
   })
 
+  const chairsData = Array.from({ length: 100 }, (_, i) => ({
+    name: `table${i + 1}`,
+  }))
+
+  await prisma.chair.createMany({
+    data: chairsData,
+  })
+
+  console.log('Seeding selesai!')
 }
 
 main()

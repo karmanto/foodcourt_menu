@@ -1,16 +1,13 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["jsonProtocol"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url = env("POSTGRES_PRISMA_URL") // uses connection pooling
-  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
-  shadowDatabaseUrl = env("POSTGRES_URL_NON_POOLING") // used for migrations
+  provider          = "postgresql"
+  url               = env("POSTGRES_PRISMA_URL")         // menggunakan connection pooling
+  directUrl         = env("POSTGRES_URL_NON_POOLING")      // menggunakan direct connection
+  shadowDatabaseUrl = env("POSTGRES_URL_NON_POOLING")      // digunakan untuk migrations
 }
 
 model User {
@@ -18,7 +15,18 @@ model User {
   name      String
   email     String   @unique
   password  String
-  active    Boolean   @default(true) 
+  active    Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String
+
+  menus     Menu[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -33,27 +41,62 @@ model Menu {
   category   Category  @relation(fields: [categoryId], references: [id])
   categoryId Int
 
+  orderMenus OrderMenu[]
+
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 }
 
-model Category {
-  id        Int     @id @default(autoincrement())
+model Discount {
+  id          Int       @id @default(autoincrement())
+  name        String
+  value       Float
+  startPeriod DateTime
+  endPeriod   DateTime
+
+  orders      Order[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Chair {
+  id        Int    @id @default(autoincrement())
+  uuid      String @default(uuid()) @unique
   name      String
 
-  menus     Menu[]
+  orders    Order[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Discount {
-  id         Int       @id @default(autoincrement())
-  name       String
-  value      Float
-  startPeriod DateTime
-  endPeriod   DateTime
+model Order {
+  id             Int       @id @default(autoincrement())
+  whatsappNumber String
+  status         String
 
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  discount       Discount? @relation(fields: [discountId], references: [id])
+  discountId     Int?
+  
+  chair          Chair     @relation(fields: [chairId], references: [id])
+  chairId        Int
+
+  orderMenus     OrderMenu[]
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model OrderMenu {
+  price     Float
+  quantity  Int
+
+  order     Order @relation(fields: [orderId], references: [id])
+  orderId   Int
+  
+  menu      Menu  @relation(fields: [menuId], references: [id])
+  menuId    Int
+
+  @@id([orderId, menuId])
 }
