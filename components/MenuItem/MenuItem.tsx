@@ -4,7 +4,7 @@ import { deleteMenuFn } from '@/lib/api/menus'
 import { Menu } from '@prisma/client'
 import { useMutation, useQueryClient, InfiniteData } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { AiFillEdit, AiOutlineDelete } from 'react-icons/ai'
+import { AiFillEdit, AiOutlineDelete, AiFillHeart } from 'react-icons/ai'
 
 interface MenuItemProps {
   id: number
@@ -12,10 +12,11 @@ interface MenuItemProps {
   desc: string
   price: number
   pic_url: string
+  favorite?: boolean // properti favorite, optional (default false)
 }
 
 export default function MenuItem(props: MenuItemProps) {
-  const { id, name, desc, price, pic_url } = props
+  const { id, name, desc, price, pic_url, favorite = false } = props
   const router = useRouter()
   const queryClient = useQueryClient()
 
@@ -25,7 +26,6 @@ export default function MenuItem(props: MenuItemProps) {
       await queryClient.cancelQueries({ queryKey: ['menus'] })
 
       const previousData = queryClient.getQueryData<InfiniteData<Menu[]>>(['menus'])
-
       if (previousData) {
         const updatedData = {
           ...previousData,
@@ -35,7 +35,6 @@ export default function MenuItem(props: MenuItemProps) {
         }
         queryClient.setQueryData<InfiniteData<Menu[]>>(['menus'], updatedData)
       }
-
       return { previousData }
     },
     onError: (
@@ -54,21 +53,26 @@ export default function MenuItem(props: MenuItemProps) {
 
   return (
     <li className="flex items-center text-xs gap-2 border p-1 rounded relative">
-      <div className="w-24 h-24 flex-shrink-0">
+      <div className="w-24 h-24 flex-shrink-0 relative">
         <img
           src={pic_url}
           alt={name}
           className="w-full h-full object-cover rounded"
         />
+        {favorite && (
+          <div className="absolute top-1 left-1 text-red-500">
+            <AiFillHeart size={20} />
+          </div>
+        )}
       </div>
 
       <div className="flex-1">
         <h3 className="font-bold text-sm">{name}</h3>
-        <p >{desc}</p>
+        <p>{desc}</p>
         <p className="font-semibold">Price: Rp {price.toFixed(2)}</p>
       </div>
 
-      <div className="flex flex-col gap-2 right-2 top-2 item-center">
+      <div className="flex flex-col gap-2 right-2 top-2 items-center">
         <button
           onClick={() => router.push(`${AppRoutes.UpdateMenu}/${id}`)}
           className="hover:opacity-80"

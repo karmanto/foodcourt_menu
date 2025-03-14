@@ -65,13 +65,27 @@ export default function MenuPage() {
   } = useInfiniteQuery({
     queryKey: ['menus', selectedCategory, searchQuery, favoriteOnly],
     queryFn: async ({ pageParam = 0 }) => {
-      return getMenusFn({
+      // Membangun parameter secara kondisional
+      const params: {
+        skip: number;
+        limit: number;
+        search?: string;
+        categoryId?: number;
+        favorite?: boolean;
+      } = {
         skip: pageParam,
         limit: 10,
-        search: searchQuery,
-        categoryId: selectedCategory,
-        favorite: favoriteOnly
-      })
+      }
+      if (searchQuery) {
+        params.search = searchQuery
+      }
+      if (selectedCategory !== undefined) {
+        params.categoryId = selectedCategory
+      }
+      if (favoriteOnly) {
+        params.favorite = true
+      }
+      return getMenusFn(params)
     },
     getNextPageParam: (lastPage, allPages) => {
       if (lastPage.length < 10) return undefined
