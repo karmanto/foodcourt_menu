@@ -25,7 +25,7 @@ export default function MenuPage() {
   const [filterModalOpen, setFilterModalOpen] = useState(false)
   const [tempCategory, setTempCategory] = useState<string>('') 
   const [selectedCategory, setSelectedCategory] = useState<number | undefined>(undefined)
-  const [favoriteOnly, setFavoriteOnly] = useState<boolean>(false) // state untuk filter favorite
+  const [favoriteOnly, setFavoriteOnly] = useState<boolean>(false) // state filter favorite
 
   const [searchInput, setSearchInput] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState<string>('')
@@ -88,9 +88,7 @@ export default function MenuPage() {
           fetchNextPage()
         }
       },
-      {
-        rootMargin: '200px'
-      }
+      { rootMargin: '200px' }
     )
 
     if (loadMoreRef.current) {
@@ -135,11 +133,7 @@ export default function MenuPage() {
           placeholder="Search menus..."
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              setSearchQuery(searchInput)
-            }
-          }}
+          onKeyDown={(e) => { if (e.key === 'Enter') setSearchQuery(searchInput) }}
           className="input-primary flex-grow"
         />
         <button className="btn-primary" onClick={() => setFilterModalOpen(true)}>
@@ -155,13 +149,9 @@ export default function MenuPage() {
           <p className="text-center text-h3">Data tidak ditemukan.</p>
         </div>
       ) : (
-        <div
-          className="flex w-full flex-col items-center overflow-auto"
-          style={{ height: "calc(100vh - 190px)" }}
-        >
+        <div className="flex w-full flex-col items-center overflow-auto" style={{ height: "calc(100vh - 190px)" }}>
           <ul className="w-full">
             {menus.map((menu: Menu) => (
-              // Pastikan komponen MenuItem menerima props favorite jika ingin ditampilkan
               <MenuItem key={menu.id} {...menu} />
             ))}
           </ul>
@@ -177,9 +167,7 @@ export default function MenuPage() {
             <h3 className="text-xl mb-4">Filter Menus</h3>
             <div className="flex flex-col gap-4">
               <div>
-                <label htmlFor="category" className="block mb-1">
-                  Category:
-                </label>
+                <label htmlFor="category" className="block mb-1">Category:</label>
                 <select
                   id="category"
                   value={tempCategory}
@@ -187,12 +175,9 @@ export default function MenuPage() {
                   className="input-primary w-full"
                 >
                   <option value="">All Categories</option>
-                  {categories &&
-                    categories.map((cat: { id: number; name: string }) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </option>
-                    ))}
+                  {categories && categories.map((cat: { id: number; name: string }) => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
                 </select>
               </div>
               <div className="flex items-center">
@@ -207,9 +192,7 @@ export default function MenuPage() {
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-4">
-              <button className="btn-primary" onClick={() => setFilterModalOpen(false)}>
-                Close
-              </button>
+              <button className="btn-primary" onClick={() => setFilterModalOpen(false)}>Close</button>
               <button
                 className="btn-primary"
                 onClick={() => {
@@ -217,9 +200,7 @@ export default function MenuPage() {
                   setFilterModalOpen(false)
                   queryClient.invalidateQueries(['menus'])
                 }}
-              >
-                Apply
-              </button>
+              >Apply</button>
             </div>
           </div>
         </div>

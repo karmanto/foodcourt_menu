@@ -11,6 +11,7 @@ export async function GET(req: Request) {
     const limit = parseInt(searchParams.get('limit') || '10', 10)
     const search = searchParams.get('search') || ''
     const categoryParam = searchParams.get('categoryId')
+    const favoriteParam = searchParams.get('favorite')
 
     let searchFilter = {}
     if (search) {
@@ -25,10 +26,17 @@ export async function GET(req: Request) {
       categoryFilter = { categoryId }
     }
 
+    let favoriteFilter = {}
+    if (favoriteParam !== null) {
+      const favorite = favoriteParam === 'true' || favoriteParam === '1'
+      favoriteFilter = { favorite }
+    }
+
     const menus = await prisma.menu.findMany({
       where: {
         ...searchFilter,
-        ...categoryFilter
+        ...categoryFilter,
+        ...favoriteFilter 
       },
       orderBy: { createdAt: 'desc' },
       skip,
