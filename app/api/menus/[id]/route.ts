@@ -8,11 +8,6 @@ export async function GET(
   req: Request,
   { params }: { params: { id: string } }
 ) {
-  const session = await getServerSession(authOptions)
-  if (!session) {
-    return new Response('Unauthorized', { status: 401 })
-  }
-
   const id = Number(params.id)
 
   try {

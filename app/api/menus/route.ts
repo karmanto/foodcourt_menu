@@ -5,11 +5,6 @@ import { put } from '@vercel/blob'
 import sharp from 'sharp'
 
 export async function GET(req: Request) {
-  const session = await getServerSession(authOptions)
-  if (!session) {
-    return new Response('Session not found', { status: 401 })
-  }
-
   try {
     const { searchParams } = new URL(req.url)
     const skip = parseInt(searchParams.get('skip') || '0', 10)
