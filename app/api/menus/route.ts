@@ -63,6 +63,12 @@ export async function POST(req: Request) {
     const price = parseFloat(priceStr as string)
     const categoryId = parseInt(categoryIdStr as string, 10)
 
+    // Ambil field favorite jika dikirim, default false jika tidak ada
+    const favoriteStr = formData.get('favorite')
+    const favorite = favoriteStr
+      ? (favoriteStr === 'true' || favoriteStr === '1')
+      : false
+
     const file = formData.get('pic')
     if (!file || typeof file === 'string') {
       return new Response('Image file is required', { status: 400 })
@@ -71,7 +77,7 @@ export async function POST(req: Request) {
     const uploadedFile = file as File
     
     if (!uploadedFile.type.startsWith('image/')) {
-      return new Response('Invalid file type', { status: 400 });
+      return new Response('Invalid file type', { status: 400 })
     }
 
     const arrayBuffer = await uploadedFile.arrayBuffer()
@@ -94,6 +100,7 @@ export async function POST(req: Request) {
         desc: desc as string,
         price,
         pic_url: blob.url, 
+        favorite, // memasukkan nilai favorite
         category: {
           connect: { id: categoryId }
         }

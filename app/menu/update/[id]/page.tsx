@@ -25,6 +25,7 @@ export default function UpdateMenuPage() {
   const [selectedCategory, setSelectedCategory] = useState('')
   const [picFile, setPicFile] = useState<File | null>(null)
   const [currentPicUrl, setCurrentPicUrl] = useState('')
+  const [favorite, setFavorite] = useState(false) // state untuk favorite
   const [notification, setNotification] = useState<Notification | null>(null)
 
   const router = useRouter()
@@ -70,6 +71,7 @@ export default function UpdateMenuPage() {
       setPrice(data.price.toString())
       setSelectedCategory(data.categoryId.toString())
       setCurrentPicUrl(data.pic_url)
+      setFavorite(data.favorite) // inisialisasi nilai favorite
     }
   }, [data])
 
@@ -144,13 +146,15 @@ export default function UpdateMenuPage() {
       desc: string
       price: number
       categoryId: number
+      favorite: boolean
       pic?: File
     } = {
       id: Number(id),
       name,
       desc,
       price: parsedPrice,
-      categoryId: parseInt(selectedCategory, 10)
+      categoryId: parseInt(selectedCategory, 10),
+      favorite // sertakan nilai favorite
     }
 
     if (picFile) {
@@ -218,6 +222,18 @@ export default function UpdateMenuPage() {
               </option>
             ))}
         </select>
+
+        {/* Checkbox untuk Favorite */}
+        <div className="flex items-center gap-2">
+          <input
+            id="favorite"
+            type="checkbox"
+            checked={favorite}
+            onChange={(e) => setFavorite(e.target.checked)}
+            className="form-checkbox"
+          />
+          <label htmlFor="favorite">Favorite</label>
+        </div>
 
         {currentPicUrl && (
           <div className="w-full">

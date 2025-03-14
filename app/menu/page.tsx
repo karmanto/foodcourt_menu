@@ -11,7 +11,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { AppRoutes } from '@/lib/utils/constants/AppRoutes'
 import Link from 'next/link'
-import { IoCreateOutline as Add, IoSearchOutline as Search } from 'react-icons/io5'
+import { IoCreateOutline as Add } from 'react-icons/io5'
 import { RiFilter3Line as Filter } from 'react-icons/ri'
 import { containerVariant } from '@/lib/framer-motion/variants'
 import { motion, HTMLMotionProps } from 'framer-motion'
@@ -25,6 +25,7 @@ export default function MenuPage() {
   const [filterModalOpen, setFilterModalOpen] = useState(false)
   const [tempCategory, setTempCategory] = useState<string>('') 
   const [selectedCategory, setSelectedCategory] = useState<number | undefined>(undefined)
+  const [favoriteOnly, setFavoriteOnly] = useState<boolean>(false) // state untuk filter favorite
 
   const [searchInput, setSearchInput] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState<string>('')
@@ -62,13 +63,14 @@ export default function MenuPage() {
     isFetchingNextPage,
     error
   } = useInfiniteQuery({
-    queryKey: ['menus', selectedCategory, searchQuery],
+    queryKey: ['menus', selectedCategory, searchQuery, favoriteOnly],
     queryFn: async ({ pageParam = 0 }) => {
       return getMenusFn({
         skip: pageParam,
         limit: 10,
         search: searchQuery,
-        categoryId: selectedCategory
+        categoryId: selectedCategory,
+        favorite: favoriteOnly
       })
     },
     getNextPageParam: (lastPage, allPages) => {
@@ -159,6 +161,7 @@ export default function MenuPage() {
         >
           <ul className="w-full">
             {menus.map((menu: Menu) => (
+              // Pastikan komponen MenuItem menerima props favorite jika ingin ditampilkan
               <MenuItem key={menu.id} {...menu} />
             ))}
           </ul>
@@ -191,6 +194,16 @@ export default function MenuPage() {
                       </option>
                     ))}
                 </select>
+              </div>
+              <div className="flex items-center">
+                <input 
+                  type="checkbox"
+                  id="favorite"
+                  checked={favoriteOnly}
+                  onChange={(e) => setFavoriteOnly(e.target.checked)}
+                  className="mr-2"
+                />
+                <label htmlFor="favorite">Only Favorites</label>
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-4">

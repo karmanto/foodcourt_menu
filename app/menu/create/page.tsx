@@ -23,6 +23,7 @@ export default function NewMenuPage() {
   const [price, setPrice] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [picFile, setPicFile] = useState<File | null>(null)
+  const [favorite, setFavorite] = useState(false) // state baru untuk favorite
   const [isCreating, setIsCreating] = useState(false)
   // State notification (null jika tidak ada notifikasi)
   const [notification, setNotification] = useState<{
@@ -108,7 +109,8 @@ export default function NewMenuPage() {
         desc,
         price: parsedPrice,
         categoryId: parseInt(selectedCategory, 10),
-        pic: picFile
+        pic: picFile,
+        favorite // sertakan nilai favorite di sini
       })
     } catch (err) {
       console.error(err)
@@ -170,6 +172,17 @@ export default function NewMenuPage() {
               </option>
             ))}
         </select>
+        {/* Checkbox untuk Favorite */}
+        <div className="flex items-center gap-2">
+          <input
+            id="favorite"
+            type="checkbox"
+            checked={favorite}
+            onChange={(e) => setFavorite(e.target.checked)}
+            className="form-checkbox"
+          />
+          <label htmlFor="favorite">Favorite</label>
+        </div>
         {/* Custom File Input */}
         <div className="w-full">
           <label

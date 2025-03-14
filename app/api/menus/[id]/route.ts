@@ -48,7 +48,7 @@ export async function PATCH(
 
     const formData = await req.formData()
 
-    // Validasi field
+    // Validasi field yang wajib ada
     const name = formData.get('name')
     const desc = formData.get('desc')
     const priceStr = formData.get('price')
@@ -60,6 +60,16 @@ export async function PATCH(
 
     const price = parseFloat(priceStr as string)
     const categoryId = parseInt(categoryIdStr as string, 10)
+
+    // Ambil nilai favorite jika dikirim
+    // Jika tidak dikirim, maka field favorite tidak diupdate (tetap menggunakan nilai yang sudah ada)
+    let updateFavorite = {}
+    const favoriteStr = formData.get('favorite')
+    if (favoriteStr !== null) {
+      const favorite =
+        favoriteStr === 'true' || favoriteStr === '1'
+      updateFavorite = { favorite }
+    }
 
     let newPicUrl: string | undefined = undefined
 
@@ -102,7 +112,8 @@ export async function PATCH(
       desc: desc as string,
       price,
       category: { connect: { id: categoryId } },
-      ...(newPicUrl && { pic_url: newPicUrl })
+      ...(newPicUrl && { pic_url: newPicUrl }),
+      ...updateFavorite // menggabungkan field favorite jika ada
     }
 
     const updatedMenu = await prisma.menu.update({
