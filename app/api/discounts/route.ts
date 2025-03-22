@@ -10,6 +10,7 @@ export async function GET(req: Request) {
     const monthParam = searchParams.get('month')
     const yearParam = searchParams.get('year')
     const search = searchParams.get('search') || ''
+    const dateParam = searchParams.get('date')
 
     let dateFilter = {}
     if (monthParam && yearParam) {
@@ -22,6 +23,12 @@ export async function GET(req: Request) {
           gte: startDate,
           lt: endDate
         }
+      }
+    } else if (dateParam) {
+      const date = new Date(dateParam)
+      dateFilter = {
+        startPeriod: { lte: date },
+        endPeriod: { gte: date }
       }
     }
 

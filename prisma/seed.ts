@@ -14,7 +14,7 @@ async function main() {
   })
 
   const chairsData = Array.from({ length: 100 }, (_, i) => ({
-    name: `table${i + 1}`,
+    name: `table ${i + 1}`,
   }))
 
   await prisma.chair.createMany({
